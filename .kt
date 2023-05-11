@@ -63,11 +63,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
+        // Verificar si el evento está dentro del área de juego
+        if (event?.x!! < player1Paddle.width || event.x > window.decorView.width - player2Paddle.width ||
+            event.y < 0 || event.y > window.decorView.height) {
+            return false
+        }
+
         // Movimiento de la ficha
-        val x = event?.rawX
-        val y = event?.rawY
-        puck.x = x!! - puck.width / 2
-        puck.y = y!! - puck.height / 2
+        val x = event.rawX
+        val y = event.rawY
+        puck.x = x - puck.width / 2
+        puck.y = y - puck.height / 2
 
         // Detección de colisiones
         if (puck.x < 0 || puck.x + puck.width > window.decorView.width) {
@@ -100,6 +106,7 @@ class MainActivity : AppCompatActivity() {
 
         return super.onTouchEvent(event)
     }
+
 
     private fun resetGame() {
         puck.x = (window.decorView.width / 2 - puck.width / 2).toFloat()
