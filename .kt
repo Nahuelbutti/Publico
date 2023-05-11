@@ -62,10 +62,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        // Verificar si el evento está dentro del área de juego
-        if (event?.x!! < player1Paddle.width || event.x > window.decorView.width - player2Paddle.width ||
-            event.y < 0 || event.y > window.decorView.height) {
+        if (event == null) {
+            return false
+        }
+
+        // Verificar si el evento está dentro del área de las paletas
+        if (event.x < player1Paddle.x || event.x > player2Paddle.x + player2Paddle.width ||
+            event.y < player1Paddle.y || event.y > player1Paddle.y + player1Paddle.height) {
             return false
         }
 
@@ -104,8 +110,11 @@ class MainActivity : AppCompatActivity() {
             resetGame()
         }
 
-        return super.onTouchEvent(event)
+        return true
     }
+
+
+
 
 
     private fun resetGame() {
