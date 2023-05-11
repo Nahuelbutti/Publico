@@ -27,9 +27,10 @@ class MainActivity : AppCompatActivity() {
 
         player1Score = findViewById(R.id.player1Score)
         player2Score = findViewById(R.id.player2Score)
-        puck = findViewById(R.id.puck)
+        val puck = findViewById<ImageView>(R.id.puck)
         player1Paddle = findViewById(R.id.player1Paddle)
         player2Paddle = findViewById(R.id.player2Paddle)
+
 
         // Posiciones iniciales
         player1Paddle.x = 0f
@@ -134,3 +135,4 @@ class MainActivity : AppCompatActivity() {
             }
     }
 }
+
