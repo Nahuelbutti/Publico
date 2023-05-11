@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:name=".MainActivity">
+
+    <TextView
+        android:id="@+id/player1Score"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textSize="48sp"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="32dp"/>
+
+    <TextView
+        android:id="@+id/player2Score"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textSize="48sp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="32dp"/>
+
+    <ImageView
+        android:id="@+id/puck"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/puckhockey"
+        android:layout_centerInParent="true"/>
+
+    <ImageView
+        android:id="@+id/player1Paddle"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/paletas"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        />
+
+    <ImageView
+        android:id="@+id/player2Paddle"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/paletas"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        />
+
+</RelativeLayout>
