@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
+import kotlin.math.abs
 
 
 class MainActivity : AppCompatActivity() {
@@ -97,14 +98,28 @@ class MainActivity : AppCompatActivity() {
             puck.velocityY = -puck.velocityY
         }
 
-        if (puck.x < player1Paddle.width && puck.y > player1Paddle.y && puck.y < player1Paddle.y + player1Paddle.height) {
+        // Colisión con la paleta izquierda
+        if (puck.x < player1Paddle.x + player1Paddle.width && puck.y + puck.height > player1Paddle.y && puck.y < player1Paddle.y + player1Paddle.height) {
+            puck.velocityX = abs(puck.velocityX)
+            puck.velocityY += player1Paddle.velocityY / 2
+            puck.x = player1Paddle.x + player1Paddle.width
+        }
+
+        // Colisión con la paleta derecha
+        if (puck.x + puck.width > player2Paddle.x && puck.y + puck.height > player2Paddle.y && puck.y < player2Paddle.y + player2Paddle.height) {
+            puck.velocityX = -abs(puck.velocityX)
+            puck.velocityY += player2Paddle.velocityY / 2
+            puck.x = player2Paddle.x - puck.width
+        }
+
+        // Actualización de la puntuación
+        if (puck.x < player1Paddle.width) {
             player2ScoreValue++
             player2Score.text = player2ScoreValue.toString()
-
             resetGame()
         }
 
-        if (puck.x + puck.width > player2Paddle.x && puck.y > player2Paddle.y && puck.y < player2Paddle.y + player2Paddle.height) {
+        if (puck.x + puck.width > player2Paddle.x) {
             player1ScoreValue++
             player1Score.text = player1ScoreValue.toString()
             resetGame()
@@ -112,6 +127,7 @@ class MainActivity : AppCompatActivity() {
 
         return true
     }
+
 
 
 
