@@ -1,96 +1,181 @@
-package app.juego.airhockey
+package com.example.airhockey
+
 import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.os.Bundle
-import android.util.AttributeSet
+import android.os.Handler
 import android.view.MotionEvent
 import android.view.View
-import android.widget.ImageView
+import android.view.Window
+import android.view.WindowManager
 import android.widget.TextView
-import androidx.appcompat.widget.AppCompatImageView
-import kotlin.math.abs
-
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
-
+    private lateinit var player1Paddle: RectF
+    private lateinit var player2Paddle: RectF
+    private lateinit var puck: RectF
     private lateinit var player1Score: TextView
     private lateinit var player2Score: TextView
-    private lateinit var puck: Puck
-    private lateinit var player1Paddle: ImageView
-    private lateinit var player2Paddle: ImageView
-
     private var player1ScoreValue = 0
     private var player2ScoreValue = 0
+    private var handler: Handler = Handler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        player1Score = findViewById(R.id.player1Score)
-        player2Score = findViewById(R.id.player2Score)
-        val puck = findViewById<ImageView>(R.id.puck)
-        player1Paddle = findViewById(R.id.player1Paddle)
-        player2Paddle = findViewById(R.id.player2Paddle)
+        // Activar pantalla completa y ocultar la barra de título
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
 
+        setContentView(AirHockeyView(this))
 
-        // Posiciones iniciales
-        player1Paddle.x = 0f
-        player1Paddle.y = 0f
-        player2Paddle.x = 0f
-        player2Paddle.y = 0f
-        puck.x = 0f
-        puck.y = 0f
+        // Inicializar las paletas, la ficha y los marcadores
+        player1Paddle = RectF(0f, 0f, 0f, 0f)
+        player2Paddle = RectF(0f, 0f, 0f, 0f)
+        puck = RectF(0f, 0f, 0f, 0f)
+        player1Score = findViewById(R.id.player1_score)
+        player2Score = findViewById(R.id.player2_score)
 
-        // Control de movimiento
-        player1Paddle.setOnTouchListener { view, motionEvent ->
-            if (motionEvent.action == MotionEvent.ACTION_MOVE) {
-                val x = motionEvent.rawX - player1Paddle.width / 2
-                val y = motionEvent.rawY - player1Paddle.height / 2
-                player1Paddle.x = x
-                player1Paddle.y = y
-            }
-            true
-        }
-
-        player2Paddle.setOnTouchListener { view, motionEvent ->
-            if (motionEvent.action == MotionEvent.ACTION_MOVE) {
-                val x = motionEvent.rawX - player2Paddle.width / 2
-                val y = motionEvent.rawY - player2Paddle.height / 2
-                player2Paddle.x = x
-                player2Paddle.y = y
-            }
-            true
-        }
+        resetGame()
     }
 
+    private fun resetGame() {
+        // Centrar las paletas y la ficha en la pantalla
+        val screenX = window.decorView.width.toFloat()
+        val screenY = window.decorView.height.toFloat()
 
+        player1Paddle.left = 50f
+        player1Paddle.top = screenY / 2 - 200f
+        player1Paddle.right = 100f
+        player1Paddle.bottom = screenY / 2 + 200f
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if (event == null) {
-            return false
+        player2Paddle.left = screenX - 100f
+        player2Paddle.top = screenY / 2 - 200f
+        player2Paddle.right = screenX - 50f
+        player2Paddle.bottom = screenY / 2 + 200f
+
+        puck.left = screenX / 2 - 50f
+        puck.top = screenY / 2 - 50f
+        puck.right = screenX / 2 + 50f
+        puck.bottom = screenY / 2 + 50f
+
+        // Inicializar la velocidad de la ficha
+        puck.velocityX = 10f
+        puck.velocityY = 10f
+    }
+
+    inner class AirHockeyView(context: Context) : View(context) {
+        private val paint = Paint()
+
+        override fun onDraw(canvas: Canvas?) {
+            super.onDraw(canvas)
+
+            // Dibujar el fondo de la pantalla
+            canvas?.drawColor(Color.BLACK)
+
+            // Dibujar las paletas y la ficha
+            paint.color = Color.WHITE
+            canvas?.drawRect(player1Paddle, paint)
+            canvas?.drawRect(player2Paddle, paint)
+            canvas?.drawOval(puck, paint)
+
+            // Dibujar los marcadores
+            paint.textSize = 60f
+            if (puck.intersect(player1Paddle) || puck.intersect(player2Paddle)) {
+                puck.velocityX = -puck.velocityX
+                puck.velocityY = -puck.velocityY
+            }
+
+            player1Paddle.offset(0f, player1Paddle.velocityY)
+            player2Paddle.offset(0f, player2Paddle.velocityY)
+
+            gameView.invalidate()
+
+            return@setOnTouchListener true
         }
 
-        // Verificar si el evento está dentro del área de las paletas
-        if (event.x < player1Paddle.x || event.x > player2Paddle.x + player2Paddle.width ||
-            event.y < player1Paddle.y || event.y > player1Paddle.y + player1Paddle.height) {
-            return false
+        val handler = Handler(Looper.getMainLooper())
+        handler.post(
+        object : Runnable {
+            override fun run() {
+                updateGameState()
+                handler.postDelayed(this, 10)
+            }
+        })
+    }
+
+    private fun updateGameState() {
+        puck.offset(puck.velocityX, puck.velocityY)
+
+        if (puck.x < 0) {
+            player2ScoreValue++
+            player2Score.text = player2ScoreValue.toString()
+            resetPuck()
         }
 
-        // Movimiento de la ficha
-        val x = event.rawX
-        val y = event.rawY
-        puck.x = x - puck.width / 2
-        puck.y = y - puck.height / 2
-
-        // Detección de colisiones
-        if (puck.x < 0 || puck.x + puck.width > window.decorView.width) {
-            puck.x = puck.x.coerceAtLeast(0f).coerceAtMost(window.decorView.width - puck.width.toFloat())
-            puck.velocityX = -puck.velocityX
+        if (puck.x + puck.width > window.decorView.width) {
+            player1ScoreValue++
+            player1Score.text = player1ScoreValue.toString()
+            resetPuck()
         }
 
         if (puck.y < 0 || puck.y + puck.height > window.decorView.height) {
-            puck.y = puck.y.coerceAtLeast(0f).coerceAtMost(window.decorView.height - puck.height.toFloat())
             puck.velocityY = -puck.velocityY
+        }
+
+        player1Paddle.offset(0f, player1Paddle.velocityY)
+        player2Paddle.offset(0f, player2Paddle.velocityY)
+
+        if (player1Paddle.top < 0 || player1Paddle.bottom > window.decorView.height) {
+            player1Paddle.offset(0f, -player1Paddle.velocityY)
+        }
+
+        if (player2Paddle.top < 0 || player2Paddle.bottom > window.decorView.height) {
+            player2Paddle.offset(0f, -player2Paddle.velocityY)
+        }
+
+        if (puck.intersect(player1Paddle) || puck.intersect(player2Paddle)) {
+            puck.velocityX = -puck.velocityX
+            puck.velocityY = -puck.velocityY
+        }
+    }
+
+    private fun updateGameState() {
+        puck.offset(puck.velocityX, puck.velocityY)
+
+        if (puck.x < 0) {
+            player2ScoreValue++
+            player2Score.text = player2ScoreValue.toString()
+            resetPuck()
+        }
+
+        if (puck.x + puck.width > window.decorView.width) {
+            player1ScoreValue++
+            player1Score.text = player1ScoreValue.toString()
+            resetPuck()
+        }
+
+        if (puck.y < 0 || puck.y + puck.height > window.decorView.height) {
+            puck.velocityY = -puck.velocityY
+        }
+
+        player1Paddle.offset(0f, player1Paddle.velocityY)
+        player2Paddle.offset(0f, player2Paddle.velocityY)
+
+        if (player1Paddle.top < 0 || player1Paddle.bottom > window.decorView.height) {
+            player1Paddle.offset(0f, -player1Paddle.velocityY)
+        }
+
+        if (player2Paddle.top < 0 || player2Paddle.bottom > window.decorView.height) {
+            player2Paddle.offset(0f, -player2Paddle.velocityY)
         }
 
         if (puck.intersect(player1Paddle) || puck.intersect(player2Paddle)) {
@@ -98,73 +183,30 @@ class MainActivity : AppCompatActivity() {
             puck.velocityY = -puck.velocityY
         }
 
-        // Colisión con la paleta izquierda
-        if (puck.x < player1Paddle.x + player1Paddle.width && puck.y + puck.height > player1Paddle.y && puck.y < player1Paddle.y + player1Paddle.height) {
-            puck.velocityX = abs(puck.velocityX)
-            puck.velocityY += player1Paddle.velocityY / 2
-            puck.x = player1Paddle.x + player1Paddle.width
+        // add code to handle collisions with walls here
+        if (puck.x < 0 || puck.x + puck.width > window.decorView.width) {
+            puck.velocityX = -puck.velocityX
         }
 
-        // Colisión con la paleta derecha
-        if (puck.x + puck.width > player2Paddle.x && puck.y + puck.height > player2Paddle.y && puck.y < player2Paddle.y + player2Paddle.height) {
-            puck.velocityX = -abs(puck.velocityX)
-            puck.velocityY += player2Paddle.velocityY / 2
-            puck.x = player2Paddle.x - puck.width
+        // add code to handle game end here
+        if (player1ScoreValue == maxScore || player2ScoreValue == maxScore) {
+            endGame()
         }
 
-        // Actualización de la puntuación
-        if (puck.x < player1Paddle.width) {
-            player2ScoreValue++
-            player2Score.text = player2ScoreValue.toString()
-            resetGame()
-        }
-
-        if (puck.x + puck.width > player2Paddle.x) {
-            player1ScoreValue++
-            player1Score.text = player1ScoreValue.toString()
-            resetGame()
-        }
-
-        return true
+        gameView.invalidate()
     }
 
-
-
-
-
-
-    private fun resetGame() {
-        puck.x = (window.decorView.width / 2 - puck.width / 2).toFloat()
-        puck.y = (window.decorView.height / 2 - puck.height / 2).toFloat()
-        puck.velocityX = 0f
-        puck.velocityY = 0f
-        player1Paddle.x = 0f
-        player1Paddle.y = (window.decorView.height / 2 - player1Paddle.height / 2).toFloat()
-        player2Paddle.x = (window.decorView.width - player2Paddle.width).toFloat()
-        player2Paddle.y = (window.decorView.height / 2 - player2Paddle.height / 2).toFloat()
-    }
-
-    private fun View.intersect(view: View): Boolean {
-        val rect1 = IntArray(2)
-        val rect2 = IntArray(2)
-        this.getLocationOnScreen(rect1)
-        view.getLocationOnScreen(rect2)
-        return rect1[0] < rect2[0] + view.width && rect1[0] + this.width > rect2[0] && rect1[1] < rect2[1] + view.height && rect1[1] + this.height > rect2[1]
-    }
-
-    class Puck(context: Context) : AppCompatImageView(context) {
-
-        var velocityX: Float = 0f
-            set(value) {
-                field = value
-                animate().xBy(value).start()
-            }
-
-        var velocityY: Float = 0f
-            set(value) {
-                field = value
-                animate().yBy(value).start()
-            }
+    private fun endGame() {
+        // add code to display winner and reset game here
+        if (player1ScoreValue > player2ScoreValue) {
+            Toast.makeText(this, "Player 1 wins!", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Player 2 wins!", Toast.LENGTH_SHORT).show()
+        }
+        player1ScoreValue = 0
+        player2ScoreValue = 0
+        player1Score.text = "0"
+        player2Score.text = "0"
+        resetPuck()
     }
 }
-
