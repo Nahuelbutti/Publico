@@ -28,14 +28,14 @@
         android:id="@+id/puck"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:src="@drawable/puckhockey"
+        android:background="@drawable/puckhockey"
         android:layout_centerInParent="true"/>
 
     <ImageView
         android:id="@+id/player1Paddle"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:src="@drawable/paletas"
+        android:background="@drawable/paletas"
         android:layout_centerHorizontal="true"
         android:layout_alignParentTop="true"
         />
@@ -44,7 +44,7 @@
         android:id="@+id/player2Paddle"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:src="@drawable/paletas"
+        android:background="@drawable/paletas"
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
         />
