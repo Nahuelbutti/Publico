@@ -2,13 +2,32 @@ package app.juego.airhockey
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
 import java.lang.Math.abs
+
+
+import android.graphics.Canvas
+import android.graphics.RectF
+
+abstract class GameObject(var x: Float, var y: Float, var width: Float, var height: Float) {
+    var velocityX = 0f
+    var velocityY = 0f
+
+    abstract fun draw(canvas: Canvas)
+
+    fun update() {
+        x += velocityX
+        y += velocityY
+    }
+
+    fun intersect(other: GameObject): Boolean {
+        return RectF(x, y, x + width, y + height).intersect(other.x, other.y, other.x + other.width, other.y + other.height)
+    }
+}
 
 
 class MainActivity : AppCompatActivity() {
@@ -63,6 +82,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+    private fun checkCollision() {
+        // Verificar si la puck colisiona con la paleta del jugador 1
+        if (puck.intersect(player1Paddle)) {
+            puck.velocityX = abs(puck.velocityX)
+            puck.velocityY = (puck.y + puck.height/2 - player1Paddle.y - player1Paddle.height/2) / 10f
+        }
+
+        // Verificar si la puck colisiona con la paleta del jugador 2
+        if (puck.intersect(player2Paddle)) {
+            puck.velocityX = -abs(puck.velocityX)
+            puck.velocityY = (puck.y + puck.height/2 - player2Paddle.y - player2Paddle.height/2) / 10f
+        }
+    }
+
+
+
+
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event == null) {
             return false
@@ -92,9 +129,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (puck.intersect(player1Paddle) || puck.intersect(player2Paddle)) {
-            puck.velocityX = -puck.velocityX
-            puck.velocityY = -puck.velocityY
-            
             if (puck.intersect(player1Paddle)) {
                 // Colisión con la paddle del jugador 1
                 puck.velocityX = abs(puck.velocityX) // La velocidad X del puck cambia de signo
@@ -106,7 +140,6 @@ class MainActivity : AppCompatActivity() {
                 puck.velocityX = -abs(puck.velocityX) // La velocidad X del puck cambia de signo
                 puck.velocityY = (puck.y + puck.height/2 - player2Paddle.y - player2Paddle.height/2) / 10f // La velocidad Y del puck depende de la posición de impacto
             }
-
         }
 
         if (puck.x < player1Paddle.width && puck.y > player1Paddle.y && puck.y < player1Paddle.y + player1Paddle.height) {
@@ -124,6 +157,11 @@ class MainActivity : AppCompatActivity() {
 
         return true
     }
+
+
+
+
+
 
     private fun resetGame() {
         puck.x = (window.decorView.width / 2 - puck.width / 2).toFloat()
