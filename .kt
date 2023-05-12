@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
+import java.lang.Math.abs
 
 
 class MainActivity : AppCompatActivity() {
@@ -61,7 +62,7 @@ class MainActivity : AppCompatActivity() {
             true
         }
     }
-    
+
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event == null) {
             return false
@@ -93,6 +94,19 @@ class MainActivity : AppCompatActivity() {
         if (puck.intersect(player1Paddle) || puck.intersect(player2Paddle)) {
             puck.velocityX = -puck.velocityX
             puck.velocityY = -puck.velocityY
+            
+            if (puck.intersect(player1Paddle)) {
+                // Colisión con la paddle del jugador 1
+                puck.velocityX = abs(puck.velocityX) // La velocidad X del puck cambia de signo
+                puck.velocityY = (puck.y + puck.height/2 - player1Paddle.y - player1Paddle.height/2) / 10f // La velocidad Y del puck depende de la posición de impacto
+            }
+
+            if (puck.intersect(player2Paddle)) {
+                // Colisión con la paddle del jugador 2
+                puck.velocityX = -abs(puck.velocityX) // La velocidad X del puck cambia de signo
+                puck.velocityY = (puck.y + puck.height/2 - player2Paddle.y - player2Paddle.height/2) / 10f // La velocidad Y del puck depende de la posición de impacto
+            }
+
         }
 
         if (puck.x < player1Paddle.width && puck.y > player1Paddle.y && puck.y < player1Paddle.y + player1Paddle.height) {
