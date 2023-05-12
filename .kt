@@ -10,26 +10,6 @@ import androidx.appcompat.widget.AppCompatImageView
 import java.lang.Math.abs
 
 
-import android.graphics.Canvas
-import android.graphics.RectF
-
-abstract class GameObject(var x: Float, var y: Float, var width: Float, var height: Float) {
-    var velocityX = 0f
-    var velocityY = 0f
-
-    abstract fun draw(canvas: Canvas)
-
-    fun update() {
-        x += velocityX
-        y += velocityY
-    }
-
-    fun intersect(other: GameObject): Boolean {
-        return RectF(x, y, x + width, y + height).intersect(other.x, other.y, other.x + other.width, other.y + other.height)
-    }
-}
-
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var player1Score: TextView
@@ -110,6 +90,8 @@ class MainActivity : AppCompatActivity() {
             event.y < player1Paddle.y || event.y > player1Paddle.y + player1Paddle.height) {
             return false
         }
+
+        checkCollision()
 
         // Movimiento de la ficha
         val x = event.rawX
